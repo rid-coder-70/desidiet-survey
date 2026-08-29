@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DesiDiet Study — Response Collector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --bg-color: #0f172a;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --primary: #6366f1;
+    --primary-hover: #4f46e5;
+    --accent: #10b981;
+    --danger: #ef4444;
+    --card-bg: rgba(30, 41, 59, 0.7);
+    --card-border: rgba(255, 255, 255, 0.1);
+    --input-bg: rgba(15, 23, 42, 0.6);
+    --input-border: rgba(255, 255, 255, 0.15);
+    --glass-blur: 12px;
+  }
+  
+  * { box-sizing: border-box; }
+  
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    background-image: 
+      radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.15), transparent 25%),
+      radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.15), transparent 25%);
+    background-attachment: fixed;
+    color: var(--text-main);
+    font-family: 'Outfit', sans-serif;
+    line-height: 1.6;
+    padding-bottom: 120px;
+  }
+
+  /* ---- Header / hero ---- */
+  .hero {
+    padding: 80px 24px 60px;
+    text-align: center;
+    position: relative;
+  }
+  
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: block;
+  }
+  
+  h1 {
+    font-weight: 700;
+    font-size: clamp(36px, 6vw, 56px);
+    margin: 0 0 16px;
+    background: linear-gradient(to right, #fff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.02em;
+  }
+  
+  .hero p.sub {
+    color: var(--text-muted);
+    font-size: 18px;
+    max-width: 600px;
+    margin: 0 auto 12px;
+  }
+  
+  .bn {
+    font-size: 15px;
+    color: #cbd5e1;
+    margin: 0 auto 32px;
+    max-width: 600px;
+  }
+  
+  .status-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  
+  .pill {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 8px 16px;
+    border-radius: 99px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    backdrop-filter: blur(4px);
+  }
+  
+  .pill strong {
+    color: var(--accent);
+    font-weight: 700;
+  }
+  
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+    70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  }
+
+  /* ---- Layout ---- */
+  .wrap {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  
+  .toolbar {
+    max-width: 800px;
+    margin: 0 auto 40px;
+    padding: 0 24px;
+    position: sticky;
+    top: 20px;
+    z-index: 40;
+  }
+  
+  .toolbar-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 16px 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(var(--glass-blur));
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .toolbar-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  }
+  
+  .toolbar-left {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+  
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  
+  button {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 10px;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  button:active { transform: scale(0.97); }
+  
+  .btn-primary {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  }
+  
+  .btn-primary:hover {
+    background: var(--primary-hover);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+    transform: translateY(-1px);
+  }
+  
+  .btn-ghost {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  .btn-danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+  
+  .btn-danger:hover {
+    background: rgba(239, 68, 68, 0.2);
+  }
+
+  section.block {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 24px;
+    backdrop-filter: blur(var(--glass-blur));
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, border-color 0.3s ease;
+  }
+  
+  section.block:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  .block-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 16px;
+  }
+  
+  .block-num {
+    background: rgba(99, 102, 241, 0.15);
+    color: var(--primary);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  
+  .block-head h2 {
+    font-weight: 600;
+    font-size: 22px;
+    margin: 0;
+  }
+  
+  .block-head .est {
+    margin-left: auto;
+    font-size: 13px;
+    color: var(--text-muted);
+    background: rgba(255,255,255,0.05);
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+
+  .field {
+    padding: 20px 0;
+    border-bottom: 1px dashed rgba(255,255,255,0.05);
+  }
+  
+  .field:last-of-type { border-bottom: none; padding-bottom: 0; }
+  .field:first-of-type { padding-top: 0; }
+  
+  .q-label {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--text-main);
+  }
+  
+  .q-hint {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  input[type=text], input[type=number], select, textarea {
+    width: 100%;
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--input-border);
+    background: var(--input-bg);
+    color: var(--text-main);
+    transition: all 0.2s ease;
+  }
+  
+  input[type=date] {
+    width: 100%;
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--input-border);
+    background: var(--input-bg);
+    color: var(--text-main);
+    transition: all 0.2s ease;
+  }
+  
+  textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+  
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    background: rgba(15, 23, 42, 0.8);
+  }
+  
+  select option { background: var(--bg-color); }
+
+  .options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .opt-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--input-border);
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+  }
+  
+  .opt-chip:hover {
+    background: rgba(255,255,255,0.08);
+  }
+  
+  .opt-chip input {
+    accent-color: var(--primary);
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    cursor: pointer;
+  }
+  
+  .opt-chip:has(input:checked) {
+    border-color: var(--primary);
+    background: rgba(99, 102, 241, 0.15);
+    color: #fff;
+  }
+
+  /* Likert Scale styling */
+  .likert {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+  
+  .likert-scale {
+    display: flex;
+    justify-content: space-between;
+    min-width: 300px;
+    gap: 8px;
+    background: rgba(255,255,255,0.02);
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--input-border);
+  }
+  
+  .likert label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--text-muted);
+    cursor: pointer;
+    flex: 1;
+    text-align: center;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background 0.2s;
+  }
+  
+  .likert label:hover {
+    background: rgba(255,255,255,0.05);
+  }
+  
+  .likert input {
+    accent-color: var(--primary);
+    width: 20px;
+    height: 20px;
+    margin: 0;
+  }
+  
+  .likert label:has(input:checked) {
+    color: var(--primary);
+    font-weight: 600;
+  }
+
+  .reverse-flag {
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(16, 185, 129, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  .submit-block {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(16, 185, 129, 0.2));
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    margin-top: 32px;
+    backdrop-filter: blur(var(--glass-blur));
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  }
+  
+  .submit-block h3 {
+    font-weight: 700;
+    font-size: 24px;
+    margin: 0 0 12px;
+  }
+  
+  .submit-block p {
+    margin: 0 auto 24px;
+    color: var(--text-muted);
+    font-size: 15px;
+    max-width: 500px;
+  }
+  
+  .submit-block button {
+    padding: 14px 32px;
+    font-size: 16px;
+    border-radius: 12px;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    backdrop-filter: blur(16px);
+    color: #fff;
+    padding: 16px 24px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 100;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  
+  .toast-icon {
+    width: 24px;
+    height: 24px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .toast-icon::after {
+    content: '';
+    width: 6px;
+    height: 10px;
+    border: solid #000;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    margin-top: -2px;
+  }
+  
+  .toast.error .toast-icon {
+    background: var(--danger);
+  }
+  .toast.error .toast-icon::after {
+    content: '!';
+    border: none;
+    transform: none;
+    color: #fff;
+    font-weight: bold;
+    margin: 0;
+  }
+
+  footer {
+    max-width: 800px;
+    margin: 40px auto 0;
+    padding: 0 24px;
+    font-size: 14px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  /* Invalid field highlighting */
+  .field.error input, .field.error select {
+    border-color: var(--danger);
+    background: rgba(239, 68, 68, 0.05);
+  }
+  
+  .error-msg {
+    color: var(--danger);
+    font-size: 13px;
+    margin-top: 8px;
+    display: none;
+  }
+  
+  .field.error .error-msg {
+    display: block;
+  }
+
+  @media (max-width: 600px) {
+    .hero { padding: 40px 16px; }
+    section.block { padding: 24px 16px; }
+    .toolbar-card { flex-direction: column; align-items: stretch; text-align: center; }
+    .btn-row { justify-content: center; }
+    .submit-block { padding: 24px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <span class="eyebrow">DesiDiet Field Study</span>
+  <h1>Participant Response Collector</h1>
+  <p class="sub">One session, pre → task → post. Fill it in on this laptop right after each participant finishes, then export everything to Excel — nothing leaves this browser.</p>
+  <p class="bn">এই ফর্মটি ইন্টারনেট ছাড়াই লোকালি চলবে। ডেটা আপনার ব্রাউজারে জমা থাকবে, আর "Export to Excel" চাপলে একটি .xlsx ফাইল ডাউনলোড হবে।</p>
+  <div class="status-row">
+    <span class="pill"><span class="dot"></span> Local Storage Active</span>
+    <span class="pill">Responses: <strong id="countPill">0</strong></span>
+  </div>
+</div>
+
+<div class="toolbar">
+  <div class="toolbar-card">
+    <div class="toolbar-left">Session ID auto-fills below. Export anytime.</div>
+    <div class="btn-row">
+      <button class="btn-ghost" id="btnClear" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+        Clear Data
+      </button>
+      <button class="btn-primary" id="btnExport" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Export to Excel
+      </button>
+    </div>
+  </div>
+</div>
+
+<form class="wrap" id="surveyForm">
+
+  <section class="block">
+    <div class="block-head">
+      <span class="block-num">00</span>
+      <h2>Session Info</h2>
+      <span class="est">~10 sec</span>
+    </div>
+    <div class="field" id="field-sessionId">
+      <div class="q-label">Participant / Session ID <span style="color:var(--danger)">*</span></div>
+      <input type="text" id="sessionId" placeholder="e.g. P07" required>
+      <div class="error-msg">Session ID is required</div>
+    </div>
+    <div class="field" id="field-sessionDate">
+      <div class="q-label">Date <span style="color:var(--danger)">*</span></div>
+      <input type="date" id="sessionDate" required>
+      <div class="error-msg">Date is required</div>
+    </div>
+  </section>
+
+  <!-- ============ PRE-STUDY ============ -->
+  <section class="block">
+    <div class="block-head">
+      <span class="block-num">PRE · 01</span>
+      <h2>Demographics</h2>
+      <span class="est">~1 min</span>
+    </div>
+
+    <div class="field">
+      <div class="q-label">D1 — Age</div>
+      <input type="number" min="10" max="100" data-key="D1_age" placeholder="Enter age">
+    </div>
+
+    <div class="field">
+      <div class="q-label">D2 — Gender</div>
+      <div class="options" data-key="D2_gender" data-type="radio">
+        <label class="opt-chip"><input type="radio" name="D2_gender" value="Male"> Male</label>
+        <label class="opt-chip"><input type="radio" name="D2_gender" value="Female"> Female</label>
+        <label class="opt-chip"><input type="radio" name="D2_gender" value="Prefer not to say"> Prefer not to say</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="q-label">D3 — Do you have any diagnosed health condition?</div>
+      <!-- Fixed missing data-key here -->
+      <div class="options" data-key="D3_condition" data-type="radio">
+        <label class="opt-chip"><input type="radio" name="D3_condition" value="Yes"> Yes</label>
+        <label class="opt-chip"><input type="radio" name="D3_condition" value="No"> No</label>
+      </div>
+      <input type="text" style="margin-top:12px" data-key="D3_condition_specify" placeholder="If yes, please specify">
+    </div>
+
+    <div class="field">
+      <div class="q-label">D4 — Are you currently following any diet plan?</div>
+      <div class="options" data-key="D4_dietplan" data-type="radio">
+        <label class="opt-chip"><input type="radio" name="D4_dietplan" value="Yes"> Yes</label>
+        <label class="opt-chip"><input type="radio" name="D4_dietplan" value="No"> No</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="q-label">D5 — Where do you currently get nutrition/health advice?</div>
+      <div class="q-hint">Select all that apply.</div>
+      <div class="options" data-key="D5_advice_source" data-type="checkbox">
+        <label class="opt-chip"><input type="checkbox" value="Facebook"> Facebook</label>
+        <label class="opt-chip"><input type="checkbox" value="YouTube"> YouTube</label>
+        <label class="opt-chip"><input type="checkbox" value="Google"> Google</label>
+        <label class="opt-chip"><input type="checkbox" value="Friends & family"> Friends & family</label>
+        <label class="opt-chip"><input type="checkbox" value="Doctor"> Doctor</label>
+        <label class="opt-chip"><input type="checkbox" value="Mobile apps"> Mobile apps</label>
+        <label class="opt-chip"><input type="checkbox" value="Other"> Other</label>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-head">
+      <span class="block-num">PRE · 02</span>
+      <h2>App Usage</h2>
+      <span class="est">~30 sec</span>
+    </div>
+
+    <div class="field">
+      <div class="q-label">U1 — Have you ever used a nutrition/diet app?</div>
+      <div class="options" data-key="U1_used_app" data-type="radio">
+        <label class="opt-chip"><input type="radio" name="U1_used_app" value="Yes"> Yes</label>
+        <label class="opt-chip"><input type="radio" name="U1_used_app" value="No"> No</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="q-label">U2 — If you stopped, why?</div>
+      <div class="q-hint">Select all that apply. Leave blank if not applicable.</div>
+      <div class="options" data-key="U2_stopped_reason" data-type="checkbox">
+        <label class="opt-chip"><input type="checkbox" value="Too complex"> Too complex</label>
+        <label class="opt-chip"><input type="checkbox" value="Not culturally relevant"> Not culturally relevant</label>
+        <label class="opt-chip"><input type="checkbox" value="Tedious logging"> Tedious logging</label>
+        <label class="opt-chip"><input type="checkbox" value="Generic"> Generic</label>
+        <label class="opt-chip"><input type="checkbox" value="Didn't trust"> Didn't trust</label>
+        <label class="opt-chip"><input type="checkbox" value="Language barrier"> Language barrier</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="q-label">U3 — How difficult do you find existing nutrition apps?</div>
+      <div class="q-hint">1 = Very easy, 7 = Very difficult</div>
+      <div data-key="U3_difficulty" data-type="likert7"></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-head">
+      <span class="block-num">PRE · 03</span>
+      <h2>Trust Baseline</h2>
+      <span class="est">~45 sec</span>
+    </div>
+    <div class="q-hint" style="margin-top:-6px;">These three items are mirrored again after the study to measure trust shift (H1).</div>
+
+    <div class="field">
+      <div class="q-label">T1 — "I would trust nutrition recommendations from a generic AI chatbot (ChatGPT, Gemini)."</div>
+      <div data-key="T1_trust_generic_ai" data-type="likert7"></div>
+    </div>
+    <div class="field">
+      <div class="q-label">T2 — "I believe generic AI can provide accurate Bangladeshi food-specific dietary advice."</div>
+      <div data-key="T2_trust_bd_accuracy" data-type="likert7"></div>
+    </div>
+    <div class="field">
+      <div class="q-label">T3 — "I would be comfortable changing my diet for a health condition based solely on an AI's suggestion without knowing its data source." <span class="reverse-flag">Reverse-coded</span></div>
+      <div data-key="T3_comfort_no_source" data-type="likert7"></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-head">
+      <span class="block-num">PRE · 04</span>
+      <h2>Diet Awareness</h2>
+      <span class="est">~40 sec</span>
+    </div>
+
+    <div class="field">
+      <div class="q-label">DA1 — "I actively think about the nutritional value of my food."</div>
+      <div data-key="DA1_active_thought" data-type="likert7"></div>
+    </div>
+    <div class="field">
+      <div class="q-label">DA2 — "I am aware of my daily nutritional requirements (iron, protein, calcium)."</div>
+      <div data-key="DA2_requirements_awareness" data-type="likert7"></div>
+    </div>
+    <div class="field">
+      <div class="q-label">DA3 — What motivates you to seek nutrition info?</div>
+      <div class="q-hint">Select all that apply.</div>
+      <div class="options" data-key="DA3_motivation" data-type="checkbox">
+        <label class="opt-chip"><input type="checkbox" value="Weight"> Weight</label>
+        <label class="opt-chip"><input type="checkbox" value="Health condition"> Health condition</label>
+        <label class="opt-chip"><input type="checkbox" value="Wellness"> Wellness</label>
+        <label class="opt-chip"><input type="checkbox" value="Fitness"> Fitness</label>
+        <label class="opt-chip"><input type="checkbox" value="Skin-hair"> Skin-hair</label>
+        <label class="opt-chip"><input type="checkbox" value="Not motivated"> Not motivated</label>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-head">
+      <span class="block-num">PRE · 05</span>
+      <h2>Communication Preference</h2>
+      <span class="est">~30 sec</span>
+    </div>
+
+    <div class="field">
+      <div class="q-label">CP1 — Preferred platform for diet advice?</div>
+      <select data-key="CP1_platform">
+        <option value="">— Select —</option>
+        <option>App</option>
+        <option>WhatsApp</option>
+        <option>Website</option>
+        <option>Facebook</option>
+        <option>YouTube</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="field">
+      <div class="q-label">CP2 — "I would use a nutrition service more if available on WhatsApp."</div>
+      <div data-key="CP2_whatsapp" data-type="likert7"></div>
+    </div>
+  </section>
+
+  <!-- ============ POST-STUDY ============ -->
+  <section class="block">
+    <div class="block-head">
+      <span class="block-num">POST · 06</span>
+      <h2>System Usability Scale</h2>
+      <span class="est">~2 min</span>
+    </div>
+    <div class="q-hint" style="margin-top:-6px;">Standard 10-item SUS, 1 = Strongly disagree, 5 = Strongly agree.</div>
+    <div id="susContainer"></div>
+  </section>
+
+  <section class="block">
+    <div class="block-head">
+      <span class="block-num">POST · 07</span>
+      <h2>Post-Trust</h2>
+      <span class="est">~1 min</span>
+    </div>
+
+    <div class="field">
+      <div class="q-label">PT1 — "I would trust nutrition recommendations from a generic AI chatbot (ChatGPT, Gemini)." <span class="reverse-flag">mirrors T1</span></div>
+      <div data-key="PT1_trust_generic_ai" data-type="likert7"></div>
+    </div>
+    <div class="field">
+      <div class="q-label">PT2 — "I believe generic AI can provide accurate Bangladeshi food-specific dietary advice." <span class="reverse-flag">mirrors T2</span></div>
+      <div data-key="PT2_trust_bd_accuracy" data-type="likert7"></div>
+    </div>
+    <div class="field">
+      <div class="q-label">PT3 — "I would be comfortable changing my diet based solely on an AI's suggestion without knowing its data source." <span class="reverse-flag">Reverse · mirrors T3</span></div>
+      <div data-key="PT3_comfort_no_source" data-type="likert7"></div>
+    </div>
+    <div class="field">
+      <div class="q-label">PT4 — "I trust DesiDiet's recommendations because they are based on the Bangladesh FCT and expert-reviewed disease mappings."</div>
+      <div data-key="PT4_trust_fct_basis" data-type="likert7"></div>
+    </div>
+    <div class="field">
+      <div class="q-label">PT5 — "DesiDiet's recommendations felt more trustworthy than generic AI suggestions because they are grounded in real nutritional data."</div>
+      <div data-key="PT5_trust_vs_generic" data-type="likert7"></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-head">
+      <span class="block-num">POST · 08</span>
+      <h2>Perceived Usefulness</h2>
+      <span class="est">~40 sec</span>
+    </div>
+
+    <div class="field">
+      <div class="q-label">PU1 — "DesiDiet's food recommendations were relevant to my Bangladeshi dietary habits."</div>
+      <div data-key="PU1_cultural_relevance" data-type="likert7"></div>
+    </div>
+    <div class="field">
+      <div class="q-label">PU2 — "The nutritional information felt accurate and scientifically grounded."</div>
+      <div data-key="PU2_scientific_grounding" data-type="likert7"></div>
+    </div>
+    <div class="field">
+      <div class="q-label">PU3 — "I learned something new about Bangladeshi foods from using DesiDiet."</div>
+      <div data-key="PU3_learned_something" data-type="likert7"></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-head">
+      <span class="block-num">POST · 09</span>
+      <h2>Interaction & Modality</h2>
+      <span class="est">~40 sec</span>
+    </div>
+
+    <div class="field">
+      <div class="q-label">IM1 — Which channel did you use most?</div>
+      <div class="options" data-key="IM1_channel" data-type="radio">
+        <label class="opt-chip"><input type="radio" name="IM1_channel" value="Web"> Web</label>
+        <label class="opt-chip"><input type="radio" name="IM1_channel" value="WhatsApp"> WhatsApp</label>
+        <label class="opt-chip"><input type="radio" name="IM1_channel" value="Both"> Both</label>
+      </div>
+    </div>
+    <div class="field">
+      <div class="q-label">IM2 — "Using DesiDiet via chat was easier than traditional nutrition apps with forms and menus."</div>
+      <div data-key="IM2_easier_than_apps" data-type="likert7"></div>
+    </div>
+    <div class="field">
+      <div class="q-label">IM3 — "Having a single AI agent handle all my queries (meal plans, food info, recipes) was convenient."</div>
+      <div data-key="IM3_single_agent_convenience" data-type="likert7"></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-head">
+      <span class="block-num">POST · 10</span>
+      <h2>Adoption & Engagement</h2>
+      <span class="est">~40 sec</span>
+    </div>
+
+    <div class="field">
+      <div class="q-label">AE1 — "I intend to continue using DesiDiet after this study."</div>
+      <div data-key="AE1_continue_intent" data-type="likert7"></div>
+    </div>
+    <div class="field">
+      <div class="q-label">AE2 — "I would recommend DesiDiet to friends and family."</div>
+      <div data-key="AE2_recommend" data-type="likert7"></div>
+    </div>
+    <div class="field">
+      <div class="q-label">AE3 — "After using DesiDiet, I feel more motivated to pay attention to my daily nutrition."</div>
+      <div data-key="AE3_motivation_increase" data-type="likert7"></div>
+    </div>
+    <div class="field">
+      <div class="q-label">AE4 — How many queries did you make beyond the 4 assigned tasks?</div>
+      <div class="options" data-key="AE4_extra_queries" data-type="radio">
+        <label class="opt-chip"><input type="radio" name="AE4_extra_queries" value="0"> 0</label>
+        <label class="opt-chip"><input type="radio" name="AE4_extra_queries" value="1–3"> 1–3</label>
+        <label class="opt-chip"><input type="radio" name="AE4_extra_queries" value="4–7"> 4–7</label>
+        <label class="opt-chip"><input type="radio" name="AE4_extra_queries" value="8+"> 8+</label>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-head">
+      <span class="block-num">POST · 11</span>
+      <h2>Single-Choice Comparison</h2>
+      <span class="est">~15 sec</span>
+    </div>
+    <div class="field">
+      <div class="q-label">SC1 — "If you had to choose ONE tool for daily nutrition guidance, which?"</div>
+      <div class="options" data-key="SC1_tool_choice" data-type="radio">
+        <label class="opt-chip"><input type="radio" name="SC1_tool_choice" value="DesiDiet"> DesiDiet</label>
+        <label class="opt-chip"><input type="radio" name="SC1_tool_choice" value="ChatGPT-Gemini"> ChatGPT / Gemini</label>
+        <label class="opt-chip"><input type="radio" name="SC1_tool_choice" value="Traditional app"> Traditional app</label>
+        <label class="opt-chip"><input type="radio" name="SC1_tool_choice" value="Nutritionist"> Nutritionist</label>
+        <label class="opt-chip"><input type="radio" name="SC1_tool_choice" value="None"> None</label>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-head">
+      <span class="block-num">POST · 12</span>
+      <h2>Open-Ended</h2>
+      <span class="est">~2 min</span>
+    </div>
+    <div class="field">
+      <div class="q-label">OE1 — What did you like most about DesiDiet?</div>
+      <textarea data-key="OE1_liked_most" placeholder="Type answer here..."></textarea>
+    </div>
+    <div class="field">
+      <div class="q-label">OE2 — What could be improved?</div>
+      <textarea data-key="OE2_improve" placeholder="Type answer here..."></textarea>
+    </div>
+    <div class="field">
+      <div class="q-label">OE3 — How did knowing recommendations are based on real scientific data affect your experience?</div>
+      <textarea data-key="OE3_data_source_effect" placeholder="Type answer here..."></textarea>
+    </div>
+  </section>
+
+  <div class="submit-block">
+    <h3>Save Participant Response</h3>
+    <p>This adds one row to the local dataset. The form will clear automatically so you're ready for the next participant.</p>
+    <button type="button" class="btn-primary" id="btnSave">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+      Save Data &amp; Reset
+    </button>
+  </div>
+
+</form>
+
+<footer>
+  DesiDiet Study © — Data remains strictly in this browser's local storage until exported. Export regularly to ensure no data is lost.
+</footer>
+
+<div class="toast" id="toast">
+  <div class="toast-icon"></div>
+  <span id="toastMessage">Saved successfully</span>
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'desidiet_responses_v1';
+  const form = document.getElementById('surveyForm');
+  const countPill = document.getElementById('countPill');
+  const toastEl = document.getElementById('toast');
+  const toastMsg = document.getElementById('toastMessage');
+
+  const SUS_ITEMS = [
+    "I think that I would like to use DesiDiet frequently.",
+    "I found DesiDiet unnecessarily complex.",
+    "I thought DesiDiet was easy to use.",
+    "I think I would need support to use DesiDiet.",
+    "I found the various functions in DesiDiet well integrated.",
+    "I thought there was too much inconsistency in DesiDiet.",
+    "I would imagine most people would learn to use DesiDiet quickly.",
+    "I found DesiDiet very cumbersome to use.",
+    "I felt very confident using DesiDiet.",
+    "I needed to learn a lot before I could get going with DesiDiet."
+  ];
+
+  function likertBlock(container, min, max, keyPrefix){
+    const scale = document.createElement('div');
+    scale.className = 'likert';
+    const inner = document.createElement('div');
+    inner.className = 'likert-scale';
+    for(let v=min; v<=max; v++){
+      const lbl = document.createElement('label');
+      lbl.innerHTML = `<input type="radio" name="${keyPrefix}" value="${v}"><span>${v}</span>`;
+      inner.appendChild(lbl);
+    }
+    scale.appendChild(inner);
+    container.appendChild(scale);
+  }
+
+  // Build likert scales
+  document.querySelectorAll('[data-type="likert7"]').forEach((el, idx)=>{
+    const key = el.getAttribute('data-key') || ('likert7_'+idx);
+    likertBlock(el, 1, 7, key);
+  });
+
+  const susContainer = document.getElementById('susContainer');
+  SUS_ITEMS.forEach((text, i)=>{
+    const n = i+1;
+    const field = document.createElement('div');
+    field.className = 'field';
+    field.innerHTML = `<div class="q-label">SUS${n} — "${text}"</div>`;
+    const likertDiv = document.createElement('div');
+    likertDiv.setAttribute('data-key', 'SUS'+n);
+    likertDiv.setAttribute('data-type','likert5');
+    likertBlock(likertDiv, 1, 5, 'SUS'+n);
+    field.appendChild(likertDiv);
+    susContainer.appendChild(field);
+  });
+
+  const dateField = document.getElementById('sessionDate');
+  dateField.value = new Date().toISOString().slice(0,10);
+
+  function getStore(){
+    try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+    catch(e){ return []; }
+  }
+  
+  function setStore(arr){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+    countPill.textContent = arr.length;
+  }
+  
+  function showToast(msg, isError = false){
+    toastMsg.textContent = msg;
+    if(isError) toastEl.classList.add('error');
+    else toastEl.classList.remove('error');
+    
+    toastEl.classList.add('show');
+    setTimeout(()=> toastEl.classList.remove('show'), 3000);
+  }
+
+  function validateForm() {
+    let isValid = true;
+    const sId = document.getElementById('sessionId');
+    const sDate = document.getElementById('sessionDate');
+    
+    if(!sId.value.trim()) {
+      document.getElementById('field-sessionId').classList.add('error');
+      isValid = false;
+    } else {
+      document.getElementById('field-sessionId').classList.remove('error');
+    }
+    
+    if(!sDate.value) {
+      document.getElementById('field-sessionDate').classList.add('error');
+      isValid = false;
+    } else {
+      document.getElementById('field-sessionDate').classList.remove('error');
+    }
+    
+    if(!isValid) {
+      showToast('Please fill required fields (Session ID & Date)', true);
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+    return isValid;
+  }
+
+  function collectResponse(){
+    const record = {};
+    record['SessionID'] = document.getElementById('sessionId').value.trim();
+    record['Date'] = document.getElementById('sessionDate').value;
+    record['SubmittedAt'] = new Date().toISOString();
+
+    form.querySelectorAll('input[type=text][data-key], input[type=number][data-key], textarea[data-key], select[data-key]').forEach(el=>{
+      record[el.getAttribute('data-key')] = el.value;
+    });
+
+    form.querySelectorAll('.options[data-type="radio"]').forEach(wrap=>{
+      const key = wrap.getAttribute('data-key');
+      if(!key) return;
+      const checked = wrap.querySelector('input[type=radio]:checked');
+      record[key] = checked ? checked.value : '';
+    });
+
+    form.querySelectorAll('.options[data-type="checkbox"]').forEach(wrap=>{
+      const key = wrap.getAttribute('data-key');
+      const checked = Array.from(wrap.querySelectorAll('input[type=checkbox]:checked')).map(c=>c.value);
+      record[key] = checked.join('; ');
+    });
+
+    form.querySelectorAll('[data-type="likert7"], [data-type="likert5"]').forEach(wrap=>{
+      const key = wrap.getAttribute('data-key');
+      const checked = wrap.querySelector('input[type=radio]:checked');
+      record[key] = checked ? checked.value : '';
+    });
+
+    return record;
+  }
+
+  function resetForm(){
+    form.reset();
+    // Dynamically generated radio buttons might not reset reliably with form.reset() in some edge cases
+    form.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+    dateField.value = new Date().toISOString().slice(0,10);
+    document.getElementById('field-sessionId').classList.remove('error');
+    document.getElementById('field-sessionDate').classList.remove('error');
+  }
+
+  document.getElementById('btnSave').addEventListener('click', function(){
+    if(!validateForm()) return;
+    
+    const record = collectResponse();
+    const store = getStore();
+    store.push(record);
+    setStore(store);
+    showToast('Saved. Total responses: ' + store.length);
+    resetForm();
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+
+  // Set your desired admin passcode here
+  const ADMIN_PASSCODE = "admin123";
+
+  document.getElementById('btnExport').addEventListener('click', function(){
+    const store = getStore();
+    if(store.length === 0){
+      showToast('No responses saved yet to export.', true);
+      return;
+    }
+    
+    const passcode = window.prompt("🔒 Enter admin passcode to export data:");
+    if (passcode !== ADMIN_PASSCODE) {
+      if (passcode !== null) showToast('Incorrect passcode. Access denied.', true);
+      return;
+    }
+
+    const ws = XLSX.utils.json_to_sheet(store);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Responses');
+    const fname = 'desidiet_responses_' + new Date().toISOString().slice(0,10) + '.xlsx';
+    XLSX.writeFile(wb, fname);
+    showToast('Exported ' + store.length + ' responses!');
+  });
+
+  document.getElementById('btnClear').addEventListener('click', function(){
+    const passcode = window.prompt("🔒 Enter admin passcode to delete data:");
+    if (passcode !== ADMIN_PASSCODE) {
+      if (passcode !== null) showToast('Incorrect passcode. Access denied.', true);
+      return;
+    }
+
+    if(confirm('🚨 This will permanently delete ALL responses saved in this browser.\n\nMake sure you have exported your data first.\n\nAre you sure you want to clear?')){
+      localStorage.removeItem(STORAGE_KEY);
+      countPill.textContent = 0;
+      showToast('All saved responses cleared.');
+    }
+  });
+
+  countPill.textContent = getStore().length;
+})();
+</script>
+
+</body>
+</html>
